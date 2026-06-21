@@ -1,0 +1,179 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Users ───────────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String   // bcrypt hash, never store plaintext
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects     Project[]
+  aiProviders  AiProvider[]
+  chatSessions ChatSession[]
+
+  @@map("users")
+}
+
+// ─── Projects ────────────────────────────────────────────────────────────────
+
+model Project {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  files        File[]
+  reviews      Review[]
+  chatSessions ChatSession[]
+
+  @@map("projects")
+}
+
+// ─── Files ───────────────────────────────────────────────────────────────────
+
+model File {
+  id        String   @id @default(uuid())
+  name      String                         // basename: "Button.tsx"
+  path      String                         // relative: "src/components/Button.tsx"
+  content   String   @db.Text              // full file text
+  language  String                         // "typescript", "python", etc.
+  size      Int                            // bytes
+  createdAt DateTime @default(now())
+  projectId String
+
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  reviewFiles ReviewFile[]
+
+  @@unique([projectId, path])              // no duplicate paths per project
+  @@map("files")
+}
+
+// ─── Reviews ─────────────────────────────────────────────────────────────────
+
+model Review {
+  id          String       @id @default(uuid())
+  type        ReviewType
+  status      ReviewStatus @default(PENDING)
+  summary     String?      @db.Text
+  createdAt   DateTime     @default(now())
+  completedAt DateTime?
+  projectId   String
+
+  project Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  files   ReviewFile[]
+  issues  Issue[]
+
+  @@map("reviews")
+}
+
+model ReviewFile {
+  reviewId String
+  fileId   String
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  file   File   @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@id([reviewId, fileId])
+  @@map("review_files")
+}
+
+model Issue {
+  id             String        @id @default(uuid())
+  title          String
+  description    String        @db.Text
+  recommendation String?       @db.Text
+  severity       IssueSeverity
+  fileName       String?       // which file the issue is in
+  lineNumber     Int?          // line number if known
+  reviewId       String
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@map("issues")
+}
+
+// ─── AI Providers ────────────────────────────────────────────────────────────
+
+model AiProvider {
+  id        String   @id @default(uuid())
+  name      String                         // "Groq", "OpenAI", "LM Studio"
+  baseUrl   String                         // "https://api.groq.com/openai/v1"
+  apiKey    String                         // encrypted in production
+  modelName String                         // "llama-3.1-70b-versatile"
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  userId    String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("ai_providers")
+}
+
+// ─── Chat ────────────────────────────────────────────────────────────────────
+
+model ChatSession {
+  id        String   @id @default(uuid())
+  title     String   @default("New Chat")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  projectId String
+  userId    String
+
+  project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@map("chat_sessions")
+}
+
+model Message {
+  id        String      @id @default(uuid())
+  role      MessageRole
+  content   String      @db.Text
+  createdAt DateTime    @default(now())
+  sessionId String
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum ReviewType {
+  SECURITY
+  PERFORMANCE
+  CODE_QUALITY
+}
+
+enum ReviewStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+enum IssueSeverity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+}
