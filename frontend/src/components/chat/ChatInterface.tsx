@@ -6,13 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Bot, User, Send, Loader2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { cn } from '@/lib/utils';
+
 
 export function ChatInterface({ sessionId }: { sessionId: string | null }) {
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   
-  const { data: session, isLoading } = useChatSession(sessionId);
+  const { data: session } = useChatSession(sessionId);
   const { mutate: sendMessage, isPending } = useSendMessage();
 
   useEffect(() => {
@@ -46,7 +46,7 @@ export function ChatInterface({ sessionId }: { sessionId: string | null }) {
         {session?.title || 'Chat'}
       </div>
       
-      <div className="flex-1 p-4 overflow-y-auto" ref={scrollRef as any}>
+      <div className="flex-1 p-4 overflow-y-auto" ref={scrollRef}>
         <div className="max-w-3xl mx-auto space-y-6">
           {session?.messages?.length === 0 && (
             <div className="text-center text-slate-500 mt-10">

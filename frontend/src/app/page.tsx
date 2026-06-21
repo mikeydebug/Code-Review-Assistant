@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
+
 
 export default function RootPage() {
   // Try to determine auth state from cookies, but Zustand persists in localStorage.

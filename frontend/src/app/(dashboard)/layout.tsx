@@ -6,7 +6,7 @@ import { useAuthStore } from '@/store/authStore';
 import { Sidebar } from '@/components/layout/Sidebar';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { token, user } = useAuthStore();
+  const { token } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
   const [isHydrated, setIsHydrated] = useState(false);
