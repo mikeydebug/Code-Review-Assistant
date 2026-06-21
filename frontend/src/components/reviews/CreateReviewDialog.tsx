@@ -42,11 +42,11 @@ export function CreateReviewDialog({ projectId }: { projectId: string }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2">
+      <DialogTrigger render={
+        <Button className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2 h-9">
           <BrainCircuit size={16} /> Run AI Review
         </Button>
-      </DialogTrigger>
+      } />
       <DialogContent className="sm:max-w-[425px] bg-slate-950 border-slate-800 text-slate-100">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

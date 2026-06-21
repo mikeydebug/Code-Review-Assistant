@@ -32,11 +32,11 @@ export function CreateProjectDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+      <DialogTrigger render={
         <Button className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2">
           <Plus size={16} /> New Project
         </Button>
-      </DialogTrigger>
+      } />
       <DialogContent className="sm:max-w-[425px] bg-slate-950 border-slate-800 text-slate-100">
         <DialogHeader>
           <DialogTitle>Create Project</DialogTitle>

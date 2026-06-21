@@ -29,7 +29,8 @@ export function AiProviderForm() {
     }
   });
 
-  const handlePresetChange = (presetId: string) => {
+  const handlePresetChange = (presetId: string | null) => {
+    if (!presetId) return;
     setSelectedPreset(presetId);
     const preset = PRESETS.find(p => p.id === presetId);
     if (preset) {
